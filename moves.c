@@ -1,5 +1,42 @@
 #define SIZE 4
 
+int makeNumber(){                   //Generates a 2 or 4 with probabilities 10%/90%
+    int x = rand()%10;
+    if(x) return 2;                 //if x == 1-9
+    else return 4;                  //if x == 0
+}
+
+int freeField(int arr[][SIZE]){ //Checks if there is a free field available
+    for(int i=0; i<SIZE; i++){
+        for(int j=0; j<SIZE; j++)
+            if(arr[i][j]==0) return 1;
+    }
+    return 0;
+}
+
+
+void spawnNumber(int arr[][SIZE]){         //ersetzt eine zufällige 0 mit einer 2 o. 4 im array
+    if(freeField(arr)){
+        int x = rand()%(SIZE);
+        int y = rand()%(SIZE);
+
+        if(arr[x][y]) spawnNumber(arr); //Recursive Call if field is already full.
+        else arr[x][y] = makeNumber(); //Write random number to 
+    }
+}                                           //Sehr ineffizient für große spielfelde, wegen rekursion.
+
+
+void newGame(int arr[][SIZE], int * score) {
+    for(int i=0; i<(SIZE);i++){
+        for(int j=0; j<SIZE; j++) arr[i][j] = 0;
+    }
+    *score = 0;
+    spawnNumber(arr); spawnNumber(arr);
+}
+
+
+
+
 void moveUp(int arr[][SIZE], int * score){                                        //Spiellogik moveUP
     short moved = 0;                                                 //Var to check if we need to spawn a new number.
     for(int i=0; i<SIZE; i++ ){                                      //column 
