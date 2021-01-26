@@ -49,8 +49,6 @@ void showGame (int arr[][SIZE], WINDOW * win){
 }
 
 
-
-
 int gameOver(int arr[][SIZE]){
     for(int i=0; i<SIZE; i++ ){
         for(int j=1; j<SIZE; j++ ){                              
@@ -61,12 +59,12 @@ int gameOver(int arr[][SIZE]){
     return 1;
 }
 
-void updateScore(WINDOW * win, int * score){
-    if(*score == 0){
+void updateScore(WINDOW * win, int score){
+    if(score == 0){
         wclear(win);
         box(win,0,0);
     }
-    mvwprintw(win, 1, 1, "Score: %d", *score);
+    mvwprintw(win, 1, 1, "Score: %d", score);
     wrefresh(win);
 }
 
@@ -79,6 +77,7 @@ int main() {
 
     int game[SIZE][SIZE];   //Init game.
     int score;              //init score variable
+    int highscore;          //init highscore var
     srand(time(0));         //Generate time seed for rand()
 
     newGame(game, &score); //Generate new game
@@ -93,8 +92,13 @@ int main() {
     initscr(); cbreak(); noecho(); curs_set(0);  //Start ncurses with no cursor and text.
     loadColors(); //Load colors
 
-    mvprintw(5,5*SIZE+8, "Controls: Q: Quit  R: Restart");
-    mvprintw(6,5*SIZE+8, "W,A,S,D: Game Movement");
+    mvprintw(8,5*SIZE+8, "Controls: Q: Quit  R: Restart");
+    mvprintw(9,5*SIZE+8, "W,A,S,D: Game Movement");
+
+
+    FILE * in = fopen("highscore.txt", "r"); //read highscore from file.
+    fscanf(in, "%d", &highscore);
+    fclose(in);
 
 
     WINDOW * win = newwin((2*SIZE+2), (5*SIZE+2), 0, 5); // Create window
@@ -102,8 +106,12 @@ int main() {
     showGame(game, win);
 
     WINDOW * scoreboard = newwin(3, 20, 1, (5*SIZE+8));
-    box(scoreboard, 0,0);
-    updateScore(scoreboard, &score); //Load scoreboard
+    updateScore(scoreboard, score); //Load scoreboard
+    refresh();
+
+    WINDOW * highboard = newwin(3, 20, 5, (5*SIZE+8));
+    box(highboard,0,0);
+    updateScore(highboard, highscore); //Load scoreboard
     refresh();
 
 
@@ -117,42 +125,49 @@ int main() {
             case 'r': {
                 newGame(game, &score);
                 showGame(game, win);
-                updateScore(scoreboard, &score);
+                updateScore(scoreboard, score);
                 mvaddstr(2*SIZE+6,10, "            "); //Ghetto delete string.
                 break;
             }
             case 'w': {
                 moveUp(game, &score);
                 showGame(game, win);
-                updateScore(scoreboard, &score);
+                updateScore(scoreboard, score);
             } break;
             case 's': {
                 moveDown(game, &score);
                 showGame(game, win);
-                updateScore(scoreboard, &score);
+                updateScore(scoreboard, score);
             } break;
             case 'a': {
                 moveLeft(game, &score);
                 showGame(game, win);
-                updateScore(scoreboard, &score);
+                updateScore(scoreboard, score);
             } break;
             case 'd': {
                 moveRight(game, &score);
                 showGame(game, win);
-                updateScore(scoreboard, &score);
+                updateScore(scoreboard, score);
             } break;
             case 'q': {         //quit
                 endwin();
                 cont = 0;
+                FILE * out = fopen("highscore.txt", "w");
+                fprintf(out, "%d", highscore);
+                fclose(out);
             } break;
         }
-        if(!freeField(game)&&gameOver(game)) {            //Lazy evaluation according to C documentation
-            
+        if(score>highscore){
+            highscore=score;
+            updateScore(highboard, highscore);
+        }
+
+
+        if(!freeField(game)&&gameOver(game)) {            //Lazy evaluation according to C documentation        
             mvaddstr(2*SIZE+6,10, "GAME OVER!");
             //beep();                                     //?flash beep
             //flash();
             //getch();
-            
         }
     }
     return 0;
